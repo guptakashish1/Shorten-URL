@@ -14,7 +14,7 @@
 
 ## Introduction
 
-Welcome to Bitly, a link shortening website built using Node.js, Express.js, and MongoDB. This project allows users to shorten long URLs into more manageable and shareable links. Whether you want to share a link on social media, in an email, or in a text message, Bitly makes it easy.
+Welcome to Bitly, a link shortening website built using Node.js, Express.js, and PostqreSql. This project allows users to shorten long URLs into more manageable and shareable links. Whether you want to share a link on social media, in an email, or in a text message, Bitly makes it easy.
 
 ## Features
 
@@ -31,7 +31,6 @@ Welcome to Bitly, a link shortening website built using Node.js, Express.js, and
 Before you begin, ensure you have met the following requirements:
 
 - Node.js installed (v14 or later).
-- MongoDB installed and running.
 - Git (optional but recommended for version control).
 
 ## Installation
@@ -52,11 +51,6 @@ Follow these steps to set up the Bitly Clone project locally:
 
 Before running the application, you need to configure your environment variables. Create a .env file in the project root directory and add the following variables:
 
-  ```bash
-    PORT=3000
-    MONGODB_URI=mongodb://localhost/bitly_clone
-    SECRET_KEY=your-secret-key
-  ```
 
 ##  Usage
 Before running the application, you need to configure your environment variables. Create a .env file in the project root directory and add the following variables:
