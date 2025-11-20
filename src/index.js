@@ -72,21 +72,24 @@ app.get('/:code', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Start server with database connection check
+// Start server with PostgreSQL connection check
 async function startServer() {
-    console.log('🔧 Starting server...');
+    console.log('🔧 Starting server with PostgreSQL...');
+    console.log('📊 Database:', process.env.DATABASE_URL.includes('neon') ? 'Neon PostgreSQL' : 'Local PostgreSQL');
     
     // Test database connection
     const dbConnected = await testConnection();
     if (!dbConnected) {
         console.log('❌ Server starting without database connection');
+        console.log('💡 Please check your PostgreSQL configuration');
+    } else {
+        console.log('✅ Database ready');
     }
     
     app.listen(PORT, () => {
         console.log(`🚀 Server running on port ${PORT}`);
         console.log(`📍 Visit: http://localhost:${PORT}`);
         console.log(`🔗 API: http://localhost:${PORT}/api/links`);
-        console.log(`📊 Stats: http://localhost:${PORT}/stats`);
     });
 }
 
