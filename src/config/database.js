@@ -1,21 +1,19 @@
 const { PrismaClient } = require('@prisma/client');
 
-let prisma;
+const prisma = new PrismaClient({
+  log: ['query', 'error', 'warn'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient();
-} else {
-  if (!global.__db) {
-    global.__db = new PrismaClient();
-  }
-  prisma = global.__db;
-}
-
-// Test connection function
+// Enhanced connection test for PostgreSQL
 async function testConnection() {
   try {
     await prisma.$connect();
-    console.log('✅ Database connected successfully');
+    console.log('✅ PostgreSQL database connected successfully');
     
     // Test with a simple query
     const linkCount = await prisma.link.count();
@@ -23,7 +21,17 @@ async function testConnection() {
     
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
+    console.error('❌ PostgreSQL connection failed:', error.message);
+    
+    // Provide helpful error messages
+    if (error.code === 'P1001') {
+      console.log('💡 Tips:');
+      console.log('   - Check if your database server is running');
+      console.log('   - Verify DATABASE_URL in .env file');
+      console.log('   - For Neon: Ensure SSL is enabled');
+      console.log('   - For local: Check if PostgreSQL service is running');
+    }
+    
     return false;
   }
 }
