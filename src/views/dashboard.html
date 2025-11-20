@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitly Clone - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <header class="bg-blue-600 text-white py-4 shadow">
+    <h1 class="text-center text-2xl font-bold">Bitly Clone - Dashboard</h1>
+  </header>
+
+  <main class="container mx-auto px-4 py-6">
+
+    <!-- Add Link Form -->
+    <section class="bg-white p-6 rounded shadow mb-8">
+      <h2 class="text-xl font-semibold mb-4">Create New Short Link</h2>
+
+      <form id="createForm" class="grid gap-4">
+        <input
+          id="urlInput"
+          type="text"
+          placeholder="Enter long URL"
+          class="border p-2 rounded w-full"
+          required
+        />
+
+        <input
+          id="codeInput"
+          type="text"
+          placeholder="Custom Code (optional)"
+          class="border p-2 rounded w-full"
+        />
+
+        <button
+          type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+        >
+          Shorten URL
+        </button>
+      </form>
+
+      <p id="formMessage" class="mt-3 text-sm"></p>
+    </section>
+
+    <!-- Links Table -->
+    <section class="bg-white p-6 rounded shadow">
+      <h2 class="text-xl font-semibold mb-4">Your Links</h2>
+
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="p-2 border">Short Code</th>
+            <th class="p-2 border">Target URL</th>
+            <th class="p-2 border">Clicks</th>
+            <th class="p-2 border">Last Clicked</th>
+            <th class="p-2 border">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="linksTable"></tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script>
+    // Load all links
+    async function loadLinks() {
+      const res = await fetch("/api/links");
+      const data = await res.json();
+
+      const table = document.getElementById("linksTable");
+      table.innerHTML = "";
+
+      data.forEach(link => {
+        const row = `
+          <tr>
+            <td class="border p-2 font-bold">${link.code}</td>
+            <td class="border p-2 text-blue-600 break-all">
+              <a href="${link.target}" target="_blank">${link.target}</a>
+            </td>
+            <td class="border p-2 text-center">${link.clicks}</td>
+            <td class="border p-2 text-center">
+              ${link.last_clicked ? new Date(link.last_clicked).toLocaleString() : "—"}
+            </td>
+            <td class="border p-2 text-center">
+              <button
+                onclick="deleteLink('${link.code}')"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        `;
+        table.innerHTML += row;
+      });
+    }
+
+    // Create link
+    document.getElementById("createForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const url = document.getElementById("urlInput").value;
+      const code = document.getElementById("codeInput").value;
+      const msg = document.getElementById("formMessage");
+
+      msg.textContent = "Creating...";
+      msg.className = "text-blue-600";
+
+      const res = await fetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target: url, code })
+      });
+
+      const data = await res.json();
+
+      if (res.status === 409) {
+        msg.textContent = "Short code already exists!";
+        msg.className = "text-red-600";
+      } else if (!res.ok) {
+        msg.textContent = data.error || "Something went wrong!";
+        msg.className = "text-red-600";
+      } else {
+        msg.textContent = "Short URL created!";
+        msg.className = "text-green-600";
+        loadLinks();
+        document.getElementById("createForm").reset();
+      }
+    });
+
+    // Delete link
+    async function deleteLink(code) {
+      await fetch(`/api/links/${code}`, { method: "DELETE" });
+      loadLinks();
+    }
+
+    loadLinks();
+  </script>
+
+</body>
+</html>

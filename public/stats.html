@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Analytics - Bitly Clone</title>
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">Bitly Clone</div>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/stats" class="nav-link active">Analytics</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Link Analytics</h1>
+                    <p class="hero-subtitle">Track performance and insights for your shortened URLs</p>
+                </div>
+            </div>
+
+            <!-- Single Link Stats (shown when viewing specific link) -->
+            <div id="singleLinkStats" class="card" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Link Details</h2>
+                </div>
+                <div class="card-body">
+                    <div id="linkDetails"></div>
+                </div>
+            </div>
+
+            <!-- Overall Statistics -->
+            <div class="stats-grid mb-8">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLinks">0</div>
+                    <div class="stat-label">Total Links</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalClicks">0</div>
+                    <div class="stat-label">Total Clicks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="mostClicked">0</div>
+                    <div class="stat-label">Most Clicks (Single Link)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgClicks">0</div>
+                    <div class="stat-label">Average Clicks</div>
+                </div>
+            </div>
+
+            <!-- All Links Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">All Shortened Links</h2>
+                </div>
+                <div class="card-body">
+                    <div id="loadingState" class="empty-state">
+                        <div class="loading"></div>
+                        <div class="empty-state-text">Loading analytics...</div>
+                    </div>
+                    
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📊</div>
+                        <div class="empty-state-text">No links created yet</div>
+                        <a href="/" class="btn btn-primary">Create Your First Link</a>
+                    </div>
+
+                    <div id="linksTable" style="display: none;">
+                        <table class="links-table">
+                            <thead>
+                                <tr>
+                                    <th>Short URL</th>
+                                    <th>Original URL</th>
+                                    <th>Clicks</th>
+                                    <th>Last Clicked</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="linksTableBody">
+                                <!-- Data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get current path to determine if we're viewing a specific link
+        const pathSegments = window.location.pathname.split('/').filter(segment => segment);
+        const isSingleLinkView = pathSegments[0] === 'stats' && pathSegments[1];
+        const linkCode = isSingleLinkView ? pathSegments[1] : null;
+
+        // Load analytics data
+        async function loadAnalytics() {
+            try {
+                showLoadingState();
+                
+                // Load all links
+                const response = await fetch('/api/links');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch links');
+                }
+                
+                const links = await response.json();
+                
+                if (links.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+
+                // Calculate statistics
+                updateStatistics(links);
+                
+                // Populate table
+                populateLinksTable(links);
+                
+                // Show single link stats if viewing specific link
+                if (linkCode) {
+                    await loadSingleLinkStats(linkCode, links);
+                }
+                
+                showLinksTable();
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showErrorState('Failed to load analytics data');
+            }
+        }
+
+        function updateStatistics(links) {
+            const totalLinks = links.length;
+            const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+            const mostClicked = Math.max(...links.map(link => link.clicks));
+            const avgClicks = totalLinks > 0 ? (totalClicks / totalLinks).toFixed(1) : 0;
+
+            document.getElementById('totalLinks').textContent = totalLinks.toLocaleString();
+            document.getElementById('totalClicks').textContent = totalClicks.toLocaleString();
+            document.getElementById('mostClicked').textContent = mostClicked.toLocaleString();
+            document.getElementById('avgClicks').textContent = avgClicks;
+        }
+
+        function populateLinksTable(links) {
+            const tableBody = document.getElementById('linksTableBody');
+            tableBody.innerHTML = '';
+
+            links.forEach(link => {
+                const row = document.createElement('tr');
+                
+                const lastClicked = link.lastClicked 
+                    ? new Date(link.lastClicked).toLocaleDateString()
+                    : 'Never';
+                    
+                const createdAt = new Date(link.createdAt).toLocaleDateString();
+                
+                row.innerHTML = `
+                    <td class="short-url-cell">
+                        <a href="/${link.code}" target="_blank" style="color: var(--primary-600); text-decoration: none;">
+                            ${window.location.host}/${link.code}
+                        </a>
+                    </td>
+                    <td class="url-cell">
+                        <span class="original-url" title="${link.targetUrl}">
+                            ${link.targetUrl}
+                        </span>
+                    </td>
+                    <td class="clicks-cell">${link.clicks}</td>
+                    <td>${lastClicked}</td>
+                    <td>${createdAt}</td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="/stats/${link.code}">
+                                <button class="btn-secondary btn-sm">Details</button>
+                            </a>
+                            <button onclick="copyShortUrl('${link.code}')" class="btn-secondary btn-sm">
+                                Copy
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadSingleLinkStats(code, allLinks) {
+            try {
+                const link = allLinks.find(l => l.code === code) || await fetch(`/api/links/${code}`).then(r => r.json());
+                
+                if (link) {
+                    document.getElementById('singleLinkStats').style.display = 'block';
+                    document.getElementById('linkDetails').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div>
+                                <strong>Short Code:</strong><br>
+                                <code style="background: var(--gray-100); padding: 8px 12px; border-radius: 6px; display: inline-block; margin-top: 4px;">
+                                    ${link.code}
+                                </code>
+                            </div>
+                            <div>
+                                <strong>Original URL:</strong><br>
+                                <a href="${link.targetUrl}" target="_blank" style="color: var(--primary-600); word-break: break-all; display: inline-block; margin-top: 4px;">
+                                    ${link.targetUrl}
+                                </a>
+                            </div>
+                            <div>
+                                <strong>Short URL:</strong><br>
+                                <a href="/${link.code}" target="_blank" style="color: var(--primary-600); display: inline-block; margin-top: 4px;">
+                                    ${window.location.host}/${link.code}
+                                </a>
+                            </div>
+                            <div>
+                                <strong>Total Clicks:</strong><br>
+                                <span style="font-size: 24px; font-weight: bold; color: var(--primary-600); display: inline-block; margin-top: 4px;">
+                                    ${link.clicks}
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Created:</strong><br>
+                                <span style="display: inline-block; margin-top: 4px;">
+                                    ${new Date(link.createdAt).toLocaleString()}
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Last Clicked:</strong><br>
+                                <span style="display: inline-block; margin-top: 4px;">
+                                    ${link.lastClicked ? new Date(link.lastClicked).toLocaleString() : 'Never'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading single link stats:', error);
+            }
+        }
+
+        function copyShortUrl(code) {
+            const shortUrl = `${window.location.origin}/${code}`;
+            navigator.clipboard.writeText(shortUrl).then(() => {
+                // Show temporary feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('btn-primary');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('btn-primary');
+                }, 2000);
+            });
+        }
+
+        function showLoadingState() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('linksTable').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('linksTable').style.display = 'none';
+        }
+
+        function showLinksTable() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('linksTable').style.display = 'block';
+        }
+
+        function showErrorState(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">${message}</div>
+                    <button onclick="loadAnalytics()" class="btn btn-primary">Try Again</button>
+                </div>
+            `;
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        // Load analytics when page loads
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+    </script>
+</body>
+</html>

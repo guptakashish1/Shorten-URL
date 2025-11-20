@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitly Clone - URL Shortener</title>
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="header-content container">
+            <a href="/" class="logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">Bitly Clone</div>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link active">Home</a>
+                <a href="/stats" class="nav-link">Analytics</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Shorten Your Links, Amplify Your Reach</h1>
+                    <p class="hero-subtitle">Create short, memorable URLs and track their performance with powerful analytics</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- URL Shortener Section -->
+        <section class="main-content">
+            <div class="container">
+                <div class="content-grid">
+                    <!-- Main Content -->
+                    <div class="main-column">
+                        <!-- URL Shortener Form -->
+                        <div class="card url-form">
+                            <div class="card-header">
+                                <h2 class="card-title">Create Short URL</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="shortenForm">
+                                    <div class="form-group">
+                                        <label for="targetUrl" class="form-label">Destination URL</label>
+                                        <input 
+                                            type="url" 
+                                            id="targetUrl" 
+                                            class="form-control" 
+                                            placeholder="https://example.com/very-long-url" 
+                                            required
+                                        >
+                                        <div class="form-hint">Enter the full URL you want to shorten</div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="customCode" class="form-label">Custom Code (Optional)</label>
+                                        <input 
+                                            type="text" 
+                                            id="customCode" 
+                                            class="form-control" 
+                                            placeholder="my-custom-link" 
+                                            maxlength="8"
+                                            pattern="[A-Za-z0-9\-_]+"
+                                        >
+                                        <div class="form-hint">6-8 characters, letters and numbers only</div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+                                        <span id="submitText">Shorten URL</span>
+                                        <div id="submitLoading" class="loading" style="display: none;"></div>
+                                    </button>
+                                </form>
+
+                                <!-- Result Display -->
+                                <div id="result" class="result-card" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Links List -->
+                        <div class="card links-section">
+                            <div class="card-header">
+                                <h2 class="card-title">Your Shortened URLs</h2>
+                            </div>
+                            <div class="card-body">
+                                <!-- Loading State -->
+                                <div id="loadingState" class="empty-state">
+                                    <div class="loading"></div>
+                                    <div class="empty-state-text">Loading your links...</div>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="emptyState" class="empty-state" style="display: none;">
+                                    <div class="empty-state-icon">🔗</div>
+                                    <div class="empty-state-text">No shortened URLs yet</div>
+                                    <p class="text-gray-500 mb-6">Create your first short URL above to get started!</p>
+                                </div>
+
+                                <!-- Links Table -->
+                                <div id="linksTable" style="display: none;">
+                                    <table class="links-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Short URL</th>
+                                                <th>Original URL</th>
+                                                <th>Clicks</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="linksTableBody">
+                                            <!-- Links will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Sidebar -->
+                    <div class="stats-sidebar">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Quick Stats</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalLinksCount">0</div>
+                                        <div class="stat-label">Total Links</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalClicksCount">0</div>
+                                        <div class="stat-label">Total Clicks</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="mostClickedCount">0</div>
+                                        <div class="stat-label">Most Clicks</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Features Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Features</h2>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: flex; flex-direction: column; gap: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-600);">✓</div>
+                                        <span style="font-size: 14px; color: var(--gray-700);">Custom short codes</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-600);">✓</div>
+                                        <span style="font-size: 14px; color: var(--gray-700);">Click analytics</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-600);">✓</div>
+                                        <span style="font-size: 14px; color: var(--gray-700);">Real-time tracking</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-600);">✓</div>
+                                        <span style="font-size: 14px; color: var(--gray-700);">No registration required</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notifications Container -->
+    <div id="notificationsContainer"></div>
+
+    <script>
+        // DOM Elements
+        const shortenForm = document.getElementById('shortenForm');
+        const resultDiv = document.getElementById('result');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const linksTable = document.getElementById('linksTable');
+        const linksTableBody = document.getElementById('linksTableBody');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitLoading = document.getElementById('submitLoading');
+
+        // Stats Elements
+        const totalLinksCount = document.getElementById('totalLinksCount');
+        const totalClicksCount = document.getElementById('totalClicksCount');
+        const mostClickedCount = document.getElementById('mostClickedCount');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLinks();
+            setupEventListeners();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Form submission
+            shortenForm.addEventListener('submit', handleFormSubmit);
+
+            // Real-time validation for custom code
+            document.getElementById('customCode').addEventListener('input', function(e) {
+                const value = e.target.value;
+                // Only allow alphanumeric, dash, and underscore
+                e.target.value = value.replace(/[^A-Za-z0-9\-_]/g, '');
+            });
+        }
+
+        // Form Submission Handler
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const targetUrl = document.getElementById('targetUrl').value.trim();
+            const customCode = document.getElementById('customCode').value.trim();
+            
+            // Show loading state
+            setSubmitButtonLoading(true);
+
+            try {
+                const response = await fetch('/api/links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        targetUrl,
+                        code: customCode || undefined
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccessResult(data);
+                    shortenForm.reset();
+                    loadLinks(); // Reload the links list
+                } else {
+                    showErrorResult(data.error || 'Failed to create short URL');
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showErrorResult('Network error: Failed to create short URL');
+            } finally {
+                setSubmitButtonLoading(false);
+            }
+        }
+
+        // Show Success Result
+        function showSuccessResult(data) {
+            const shortUrl = `${window.location.origin}/${data.code}`;
+            
+            resultDiv.innerHTML = `
+                <div class="success-message">
+                    <div class="success-icon">✓</div>
+                    <div class="success-content">
+                        <strong>URL shortened successfully!</strong>
+                        <div class="short-url-result">
+                            <span class="short-url-text">${shortUrl}</span>
+                            <button class="copy-btn btn-sm" onclick="copyToClipboard('${shortUrl}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <div class="success-actions">
+                            <a href="/${data.code}" target="_blank" class="btn-test-link">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0;">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M15 3h6v6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M10 14L21 3" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                                Test Link
+                            </a>
+                            <a href="/stats/${data.code}" class="btn-analytics">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0;">
+                                    <path d="M18 20V10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 20V4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M6 20v-6" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                                View Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Show Error Result
+        function showErrorResult(message) {
+            resultDiv.innerHTML = `
+                <div style="background: var(--error-50); border: 1px solid var(--error-500); border-radius: var(--radius-lg); padding: 20px; color: var(--error-700);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 24px; height: 24px; background: var(--error-500); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">!</div>
+                        <strong>${message}</strong>
+                    </div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Load All Links
+        async function loadLinks() {
+            showLoadingState();
+            
+            try {
+                const response = await fetch('/api/links');
+                const links = await response.json();
+                
+                if (links.length === 0) {
+                    showEmptyState();
+                } else {
+                    populateLinksTable(links);
+                    updateStats(links);
+                    showLinksTable();
+                }
+            } catch (error) {
+                console.error('Error loading links:', error);
+                showEmptyState();
+                showNotification('Failed to load links', 'error');
+            }
+        }
+
+        // Populate Links Table
+        function populateLinksTable(links) {
+            linksTableBody.innerHTML = '';
+
+            links.forEach(link => {
+                const row = document.createElement('tr');
+                const createdAt = new Date(link.createdAt).toLocaleDateString();
+                const shortUrl = `${window.location.origin}/${link.code}`;
+                
+                row.innerHTML = `
+                    <td class="short-url-cell">
+                        <a href="/${link.code}" target="_blank" style="color: var(--primary-600); text-decoration: none; font-weight: 600;">
+                            ${link.code}
+                        </a>
+                        <div style="font-size: 12px; color: var(--gray-500); margin-top: 2px;">${shortUrl}</div>
+                    </td>
+                    <td class="url-cell">
+                        <span class="original-url" title="${link.targetUrl}">
+                            ${link.targetUrl}
+                        </span>
+                    </td>
+                    <td class="clicks-cell">
+                        <span style="font-weight: 600; color: var(--gray-700);">${link.clicks}</span>
+                    </td>
+                    <td style="color: var(--gray-600); font-size: 14px;">
+                        ${createdAt}
+                    </td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="/${link.code}" target="_blank" class="btn-visit" title="Visit URL">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M15 3h6v6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M10 14L21 3" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </a>
+                            <button class="btn-copy" onclick="copyToClipboard('${shortUrl}', this)" title="Copy URL">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                            <a href="/stats/${link.code}" class="btn-stats" title="View Analytics">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M18 20V10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 20V4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M6 20v-6" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </a>
+                            <button class="btn-delete" onclick="deleteLink('${link.code}')" title="Delete Link">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M3 6h18" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                linksTableBody.appendChild(row);
+            });
+        }
+
+        // Update Statistics
+        function updateStats(links) {
+            const totalLinks = links.length;
+            const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+            const mostClicked = Math.max(...links.map(link => link.clicks));
+
+            totalLinksCount.textContent = totalLinks.toLocaleString();
+            totalClicksCount.textContent = totalClicks.toLocaleString();
+            mostClickedCount.textContent = mostClicked.toLocaleString();
+        }
+
+        // UI State Management
+        function showLoadingState() {
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            linksTable.style.display = 'none';
+        }
+
+        function showEmptyState() {
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'block';
+            linksTable.style.display = 'none';
+        }
+
+        function showLinksTable() {
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'none';
+            linksTable.style.display = 'block';
+        }
+
+        function setSubmitButtonLoading(loading) {
+            if (loading) {
+                submitText.style.display = 'none';
+                submitLoading.style.display = 'inline-block';
+                submitBtn.disabled = true;
+            } else {
+                submitText.style.display = 'inline-block';
+                submitLoading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Utility Functions
+        async function copyToClipboard(text, button) {
+            try {
+                await navigator.clipboard.writeText(text);
+                
+                // Visual feedback
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                button.classList.add('copied');
+                
+                showNotification('URL copied to clipboard!', 'success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copied');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                showNotification('URL copied to clipboard!', 'success');
+            }
+        }
+
+        async function deleteLink(code) {
+            if (!confirm('Are you sure you want to delete this short URL?\nThis action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/links/${code}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('Link deleted successfully', 'success');
+                    loadLinks(); // Reload the list
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Failed to delete link', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting link:', error);
+                showNotification('Network error: Failed to delete link', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notificationsContainer = document.getElementById('notificationsContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <span class="notification-message">${message}</span>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+            
+            notificationsContainer.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

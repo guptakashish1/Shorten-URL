@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Link Stats - Bitly Clone</title>
+    <link rel="stylesheet" href="./layout.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Bitly Clone – Link Statistics</h1>
+</header>
+
+<div class="container">
+
+    <div class="box">
+        <h2>Overall Statistics</h2>
+        <p><strong>Total Links: </strong> <span id="totalLinks">0</span></p>
+        <p><strong>Total Clicks: </strong> <span id="totalClicks">0</span></p>
+    </div>
+
+    <div class="box">
+        <h2>All Shortened Links</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Short URL</th>
+                    <th>Original URL</th>
+                    <th>Clicks</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody id="linksTableBody">
+                <!-- Data will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    // Fetch stats from server
+    async function loadStats() {
+        try {
+            const res = await fetch("/links/all");
+            const data = await res.json();
+
+            // Total counts
+            document.getElementById("totalLinks").innerText = data.length;
+            document.getElementById("totalClicks").innerText = data.reduce((sum, item) => sum + item.clicks, 0);
+
+            const tableBody = document.getElementById("linksTableBody");
+            tableBody.innerHTML = "";
+
+            data.forEach(item => {
+                const row = `
+                    <tr>
+                        <td><a href="/${item.short_code}" target="_blank">${item.short_code}</a></td>
+                        <td>${item.original_url}</td>
+                        <td>${item.clicks}</td>
+                        <td>${new Date(item.created_at).toLocaleString()}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error("Error loading stats:", error);
+        }
+    }
+
+    loadStats();
+</script>
+
+</body>
+</html>
